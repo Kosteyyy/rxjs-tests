@@ -3,6 +3,8 @@ import { RouterOutlet } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { fibonacci } from './helpers/fibonacci-generator';
 import { BehaviorSubject, from, interval, map, switchMap, tap, timer } from 'rxjs';
+import { testChangingInterval } from './rxjs-examples/changing-interval';
+import { concatStream$, mergeStream$ } from './rxjs-examples/concat';
 
 @Component({
   selector: 'app-root',
@@ -16,6 +18,7 @@ export class AppComponent implements OnInit {
 
   emitter = new EventEmitter<boolean>();
 
+  //Реализация с использованием эмиттера в качестве триггера
   stream$ = from(this.emitter).pipe(map((val) => this.iter.next()));
 
   iter = fibonacci();
@@ -23,7 +26,10 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     // this.stream$.subscribe(console.log);
-    this.testChangingInterval();
+    // testChangingInterval();
+    // concatStream$.subscribe(val => console.log("CONCAT STREAM ", val)); // Выводит сначала 5 значений потока 1 потом 5 значений потока 2
+    mergeStream$.subscribe(val => console.log("Merge STREAM ", val)); // Выводит По мере эмитирования 2-1-2-2-1-2-1-2-1-1 
+
   }
 
   startTask() {
@@ -35,20 +41,5 @@ export class AppComponent implements OnInit {
     console.log(val);
   }
 
-  private testChangingInterval() {
-    const intervalTime$ = new BehaviorSubject<number>(3000);
-    let count = 0;
-    let prevCount = 0;
-    const intervalStream$ = intervalTime$.pipe(switchMap((intervalTime) => timer(intervalTime)),
-      tap((intervalTime) => {
-        if (++count - prevCount > 10) {
-          prevCount = count;
-          intervalTime$.next(intervalTime$.value + 10000);
-        }
-      }
-    ));
-    intervalStream$.subscribe((intervalTime) => {
-      console.log('ИНТЕРВАЛ, count: ', intervalTime$.value, count);
-    });
-  }
+
 }
